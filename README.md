@@ -24,3 +24,6 @@ MODEL_TEMPERATURE=0.1
 GAIA_API_BASE_URL=https://agents-course-unit4-scoring.hf.space
 HF_USERNAME=madhuarigela
 SPACE_ID=madhuarigela/gaia-final-agent
+
+## Deployment
+GitHub Actions deploys the `main` branch to the Hugging Face Space.
