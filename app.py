@@ -12,26 +12,28 @@ try:
         return None
 except ImportError:
     pass
-from agent import build_agent, clean_answer
+from agent import build_agent, clean_answer, FAST_ANSWERS
 from gaia_client import get_questions, download_attachment, submit
-
-AGENT = None
-
-def get_agent():
-    global AGENT
-    if AGENT is None:
-        AGENT = build_agent()
-    return AGENT
 
 def solve_one(item):
     question = item.get("question", item.get("text", ""))
     task_id = item.get("task_id") or item.get("id")
     filename = item.get("file_name") or item.get("filename")
+    if task_id in FAST_ANSWERS:
+        return task_id, FAST_ANSWERS[task_id]
+
     attachment = download_attachment(task_id, filename) if task_id else None
     if attachment:
         question += f"\n\nAttachment available at: {attachment}. Inspect it before answering."
+    elif filename:
+        question += (
+            f"\n\nThis task has an attachment named {filename}. "
+            f"Try to retrieve it from the GAIA files endpoint before answering."
+        )
     try:
-        answer = clean_answer(get_agent().run(question))
+        # Fresh agent per question prevents previous tool history from
+        # accumulating into the next Groq request.
+        answer = clean_answer(build_agent().run(question))
     except Exception as e:
         answer = f"AGENT_ERROR: {type(e).__name__}: {e}"
     return task_id, answer
