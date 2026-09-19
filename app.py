@@ -1,5 +1,17 @@
 import os
 import gradio as gr
+
+# Hugging Face ZeroGPU requires at least one @spaces.GPU-decorated
+# function to be present during startup. The GAIA agent itself uses
+# cloud APIs, so this probe is intentionally never called.
+try:
+    import spaces
+
+    @spaces.GPU(duration=1)
+    def _zerogpu_startup_probe():
+        return None
+except ImportError:
+    pass
 from agent import build_agent, clean_answer
 from gaia_client import get_questions, download_attachment, submit
 
