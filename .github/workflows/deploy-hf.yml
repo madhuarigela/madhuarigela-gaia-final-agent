@@ -1,0 +1,26 @@
+name: Deploy to Hugging Face Space
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Push to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git clone https://user:${HF_TOKEN}@huggingface.co/spaces/madhuarigela/gaia-final-agent hf-space
+          rsync -av --exclude='.git' --exclude='.github' ./ hf-space/
+          cd hf-space
+          git add .
+          git diff --cached --quiet || git commit -m "Deploy GAIA agent from GitHub"
+          git push origin main
